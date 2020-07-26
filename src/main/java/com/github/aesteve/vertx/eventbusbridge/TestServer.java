@@ -19,11 +19,15 @@ public class TestServer {
             msg.headers().forEach(e -> options.addHeader(e.getKey(), e.getValue()));
             msg.reply(msg.body(), options);
         });
+        vertx.eventBus().consumer("in-address").handler(msg -> {
+            System.out.println("received: " + msg);
+        });
         vertx.eventBus().consumer("error-address").handler(msg -> msg.fail(503, "FORBIDDEN"));
         var bridge = TcpEventBusBridge.create(
                 vertx,
                 new BridgeOptions()
                         .addInboundPermitted(new PermittedOptions().setAddress("echo-address"))
+                        .addInboundPermitted(new PermittedOptions().setAddress("in-address"))
                         .addInboundPermitted(new PermittedOptions().setAddress("error-address"))
                         .addOutboundPermitted(new PermittedOptions().setAddress("error-address"))
                         .addOutboundPermitted(new PermittedOptions().setAddress("out-address"))
